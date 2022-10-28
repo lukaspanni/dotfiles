@@ -14,7 +14,7 @@ Plug 'ryanoasis/vim-devicons'
 Plug 'vwxyutarooo/nerdtree-devicons-syntax'
 Plug 'sainnhe/gruvbox-material'
 Plug 'nvim-lualine/lualine.nvim'
-
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 call plug#end()
 
 nnoremap <leader>n :NERDTreeToggle<CR>
@@ -72,3 +72,6 @@ require('lualine').setup {
 }
 
 END
+
+
+let g:coc_global_extensions = ['coc-tsserver', 'coc-html', 'coc-snippets', 'coc-prettier', 'coc-pairs']
