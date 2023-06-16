@@ -7,7 +7,7 @@ NODE_VERSION=20
 
 # Install general packages, some should already be installed, but make sure everything is there
 apt update
-apt install -y zsh tree curl wget git 
+apt install -y zsh tree curl wget git neofetch htop 
 
 # Add user if it does not exist
 id -u $USER &>/dev/null || adduser --shell /usr/bin/zsh $USER
