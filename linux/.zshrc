@@ -5,5 +5,3 @@ alias nv=nvim
 alias g=git
 
 export PATH="/home/linuxbrew/.linuxbrew/bin":$PATH
-
-export VIMINIT="so ~/.vimrc"
