@@ -37,4 +37,4 @@ brew install jandedobbeleer/oh-my-posh/oh-my-posh
 # neovim + nvchad
 brew install neovim
 git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1 && nvim
-cp ../shared/chadrc.lua ~/.config/nvim/lua/
+cp ../shared/chadrc.lua ~/.config/nvim/lua/custom/
