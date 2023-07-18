@@ -1,5 +1,10 @@
 local plugins = {
-    {"nvim-tree/nvim-tree.lua", lazy = false}, {
+    {"nvim-tree/nvim-tree.lua", 
+     lazy = false,
+     opts={
+      filters={dotfiles=false}
+    }
+  }, {
         "nvim-treesitter/nvim-treesitter",
         opts = {
             ensure_installed = {
