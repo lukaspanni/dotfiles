@@ -37,7 +37,10 @@ local plugins = {
             finder = "telescope.nvim"
         },
         config = function(_, opts) require("obsidian").setup(opts) end
-    }
+    }, {
+      "github/copilot.vim",
+      lazy=false
+  }
 }
 
 return plugins
