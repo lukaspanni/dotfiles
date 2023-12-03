@@ -1,0 +1,13 @@
+[user]
+	name = Lukas Panni
+	email = lukas.panni@outlook.de
+[alias]
+	s = status
+	fpush = push --force-with-lease
+	psh = push
+	print = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	fix = commit --amend --no-edit
+[init]
+	defaultBranch = main
+[core]
+	editor = nvim

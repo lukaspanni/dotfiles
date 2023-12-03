@@ -8,4 +8,3 @@ export JAVA_HOME="/opt/homebrew/opt/openjdk"
 export FLUTTER_HOME="/opt/homebrew/opt/flutter/bin"
 export PATH="/opt/homebrew/opt/node@16/bin:$FLUTTER_HOME:$JAVA_HOME:$PATH"
 
-export VIMINIT="so ~/.vimrc"
