@@ -8,9 +8,12 @@ $programs_winget = @(
   "Git.Git",
   "GitHub.cli",
   "Google.Chrome",
+  "gsass1.NTop",
   "IDRIX.VeraCrypt",
   "Insecure.Nmap",
   "JanDeDobbeleer.OhMyPosh",
+  "JesseDuffield.lazydocker", 
+  "JesseDuffield.lazygit", 
   "MiKTeX.MiKTeX",
   "Microsoft.DotNet.SDK.7",
   "Microsoft.PowerShell",
@@ -24,15 +27,15 @@ $programs_winget = @(
   "Python.Python.3.11",
   "VideoLAN.VLC",
   "WiresharkFoundation.Wireshark",
-  "gerardog.gsudoMicrosoft.VisualStudioCode"
+  "gerardog.gsudo",
+  "Microsoft.VisualStudioCode"
+
 );
 
 $programs_choco = @(
   "Temurin11",
   "ghc",
   "haskell-stack",
-  "lazydocker", 
-  "lazygit", 
   "make", 
   "neovim"
 )
