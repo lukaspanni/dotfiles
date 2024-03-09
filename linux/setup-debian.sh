@@ -7,7 +7,7 @@ NODE_VERSION=20
 
 # Install general packages, some should already be installed, but make sure everything is there
 apt update
-apt install -y zsh tree curl wget git neofetch htop 
+apt install -y zsh tree curl wget git neofetch htop tmux
 
 # Add user if it does not exist
 id -u $USER &>/dev/null || adduser --shell /usr/bin/zsh $USER
@@ -34,7 +34,14 @@ su - $USER
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew install jandedobbeleer/oh-my-posh/oh-my-posh
 
-# neovim + nvchad
+# Install neovim + nvchad
 brew install neovim
 git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1 && nvim
+# Set nvchad config
 cp ../shared/chadrc.lua ~/.config/nvim/lua/custom/
+
+
+# Setup tmux
+mkdir -p ~/.config/tmux/
+cp ../shared/tmux/* ~/.config/tmux/
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
