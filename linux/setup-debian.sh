@@ -39,7 +39,7 @@ brew install neovim
 git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1 && nvim
 # Set nvchad config
 cp ../shared/chadrc.lua ~/.config/nvim/lua/custom/
-
+cp -r ../shared/.git* $HOME
 
 # Setup tmux
 mkdir -p ~/.config/tmux/

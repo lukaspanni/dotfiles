@@ -56,3 +56,4 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path",
 
 git clone https://github.com/NvChad/NvChad $HOME\AppData\Local\nvim --depth 1 && nvim
 cp -r ../shared/nvchad/ $HOME\AppData\Local\nvim\lua\custom
+cp -r ../shared/.git* $HOME
