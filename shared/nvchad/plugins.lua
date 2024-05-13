@@ -8,7 +8,7 @@ local plugins = {
         "nvim-treesitter/nvim-treesitter",
         opts = {
             ensure_installed = {
-                "c_sharp", "haskell", "kotlin", "swift", "typescript", "python"
+                "c_sharp", "haskell", "kotlin", "swift", "typescript", "python", "go"
             }
         }
     }, {
@@ -22,7 +22,7 @@ local plugins = {
         opts = {
             ensure_installed = {
                 "prettier", "haskell-language-server", "csharp-language-server",
-                "typescript-language-server", "html-lsp"
+                "typescript-language-server", "html-lsp", "gopls"
             }
         }
     }, {
@@ -49,7 +49,19 @@ local plugins = {
   {
     "christoomey/vim-tmux-navigator",
     lazy=false
-  }
+  },
+{
+  "olexsmir/gopher.nvim",
+  config = function()
+    require("gopher").setup()
+  end,
+  event = { "BufReadPre *.go" },
+  ft = {"go", 'gomod'},
+  build = function()
+    vim.cmd [[silent! GoInstallDeps]]
+  end 
+
+}
 }
 
 return plugins
