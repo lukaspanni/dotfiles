@@ -1,7 +1,4 @@
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString("https://community.chocolatey.org/install.ps1"))
-
-
-$programs_winget = @(
+  $programs_winget = @(
   "Debian.Debian",
   "Docker.DockerDesktop",
   "Duplicati.Duplicati",
@@ -15,7 +12,7 @@ $programs_winget = @(
   "JesseDuffield.lazydocker", 
   "JesseDuffield.lazygit", 
   "MiKTeX.MiKTeX",
-  "Microsoft.DotNet.SDK.7",
+  "Microsoft.DotNet.SDK.8",
   "Microsoft.PowerShell",
   "Microsoft.PowerToys",
   "Microsoft.WindowsTerminal",
@@ -24,28 +21,19 @@ $programs_winget = @(
   "Notion.Notion",
   "Obsidian.Obsidian",
   "OpenJS.NodeJS",
-  "Python.Python.3.11",
+  "Python.Python.3.12",
   "VideoLAN.VLC",
   "WiresharkFoundation.Wireshark",
   "gerardog.gsudo",
-  "Microsoft.VisualStudioCode"
-
+  "Microsoft.VisualStudioCode",
+  "Microsoft.OpenJDK.21",
+  "Neovim.Neovim",
+  "GoLang.Go"
 );
 
-$programs_choco = @(
-  "Temurin11",
-  "ghc",
-  "haskell-stack",
-  "make", 
-  "neovim"
-)
 
 Foreach ($prg in $programs_winget) {
   winget install --exact --silent $prg
-}
-
-Foreach ($prg in $programs_choco) {
-  choco install -y $prg
 }
 
 # make sure path is set correctly
@@ -54,6 +42,15 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path",
   "User") 
 
 
-git clone https://github.com/NvChad/NvChad $HOME\AppData\Local\nvim --depth 1 && nvim
+if (!(Test-Path $env:localappdata\nvim)) {
+  git clone https://github.com/NvChad/NvChad $env:localappdata\nvim --depth 1 && nvim
+}else {
+  $cwd = pwd
+  cd $HOME\AppData\Local\nvim
+  git pull --rebase
+  cd $cwd
+}
+
 cp -r ../shared/nvchad/ $HOME\AppData\Local\nvim\lua\custom
 cp -r ../shared/.git* $HOME
+cp ./Microsoft.PowerShell_profile.ps1 $PROFILE

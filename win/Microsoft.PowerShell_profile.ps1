@@ -4,9 +4,10 @@ Set-Alias ld lazydocker
 Set-Alias g git
 Set-Alias vim nvim
 Set-Alias htop ntop 
+Set-Alias which gcm
 
 $VServer="37.120.173.24"
-$VServer_Alt="89.163.218.189"
+$dev = "E:\Dokumente\Development"
 
 function zsh { wsl.exe zsh }
 
