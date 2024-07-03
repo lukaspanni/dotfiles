@@ -4,3 +4,5 @@ alias lg=lazygit
 alias nv=nvim
 alias g=git
 alias top=btop
+
+source <(fzf --zsh)
