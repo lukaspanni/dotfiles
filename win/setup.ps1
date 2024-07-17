@@ -1,56 +1,76 @@
+
+function Install-Packages {
   $programs_winget = @(
-  "Debian.Debian",
-  "Docker.DockerDesktop",
-  "Duplicati.Duplicati",
-  "Git.Git",
-  "GitHub.cli",
-  "Google.Chrome",
-  "gsass1.NTop",
-  "IDRIX.VeraCrypt",
-  "Insecure.Nmap",
-  "JanDeDobbeleer.OhMyPosh",
-  "JesseDuffield.lazydocker", 
-  "JesseDuffield.lazygit", 
-  "MiKTeX.MiKTeX",
-  "Microsoft.DotNet.SDK.8",
-  "Microsoft.PowerShell",
-  "Microsoft.PowerToys",
-  "Microsoft.WindowsTerminal",
-  "Mozilla.Firefox",
-  "Notepad++.Notepad++",
-  "Notion.Notion",
-  "Obsidian.Obsidian",
-  "OpenJS.NodeJS",
-  "Python.Python.3.12",
-  "VideoLAN.VLC",
-  "WiresharkFoundation.Wireshark",
-  "gerardog.gsudo",
-  "Microsoft.VisualStudioCode",
-  "Microsoft.OpenJDK.21",
-  "Neovim.Neovim",
-  "GoLang.Go"
-);
+    "Debian.Debian",
+    "Docker.DockerDesktop",
+    "Duplicati.Duplicati",
+    "Git.Git",
+    "GitHub.cli",
+    "Google.Chrome",
+    "gsass1.NTop",
+    "IDRIX.VeraCrypt",
+    "Insecure.Nmap",
+    "JanDeDobbeleer.OhMyPosh",
+    "JesseDuffield.lazydocker", 
+    "JesseDuffield.lazygit", 
+    "MiKTeX.MiKTeX",
+    "Microsoft.DotNet.SDK.8",
+    "Microsoft.PowerShell",
+    "Microsoft.PowerToys",
+    "Microsoft.WindowsTerminal",
+    "Mozilla.Firefox",
+    "Notepad++.Notepad++",
+    "Notion.Notion",
+    "Obsidian.Obsidian",
+    "OpenJS.NodeJS",
+    "Python.Python.3.12",
+    "VideoLAN.VLC",
+    "WiresharkFoundation.Wireshark",
+    "gerardog.gsudo",
+    "Microsoft.VisualStudioCode",
+    "Microsoft.OpenJDK.21",
+    "Neovim.Neovim",
+    "GoLang.Go"
+  );
 
 
-Foreach ($prg in $programs_winget) {
-  winget install --exact --silent $prg
-}
+  Foreach ($prg in $programs_winget) {
+    winget install --exact --silent $prg
+  }
 
-# make sure path is set correctly
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path",
+  # make sure path is set correctly
+  $env:Path = [System.Environment]::GetEnvironmentVariable("Path",
   "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path",
   "User") 
+}
+
+function Configure {
+
+  if (!(Test-Path $env:localappdata\nvim)) {
+    git clone https://github.com/NvChad/NvChad $env:localappdata\nvim --depth 1 && nvim
+  }else {
+    $cwd = pwd
+    cd $HOME\AppData\Local\nvim
+    git pull --rebase
+    cd $cwd
+  }
 
 
-if (!(Test-Path $env:localappdata\nvim)) {
-  git clone https://github.com/NvChad/NvChad $env:localappdata\nvim --depth 1 && nvim
-}else {
   $cwd = pwd
-  cd $HOME\AppData\Local\nvim
-  git pull --rebase
+  cd $PSScriptRoot
+  cp -r -Force ../shared/nvchad/ $HOME\AppData\Local\nvim\lua\custom
+  cp -r ../shared/.git* $HOME
+  cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
   cd $cwd
 }
 
-cp -r ../shared/nvchad/ $HOME\AppData\Local\nvim\lua\custom
-cp -r ../shared/.git* $HOME
-cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
+if ($args[0] -eq "install" -or $args[0] -eq "") {
+  Install-Packages
+  Configure
+}
+elseif ($args[0] -like "config*") {
+  Configure
+}
+else {
+  Write-Host "Unknown command $args"
+}
