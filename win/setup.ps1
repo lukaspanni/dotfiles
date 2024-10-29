@@ -1,71 +1,84 @@
-
 function Install-Packages {
+  param (
+    [switch]$FullInstall
+  )
+
   $programs_winget = @(
-    "Debian.Debian",
+    "Canonical.Ubuntu2404",
     "Docker.DockerDesktop",
-    "Duplicati.Duplicati",
     "Git.Git",
     "GitHub.cli",
     "Google.Chrome",
     "gsass1.NTop",
-    "IDRIX.VeraCrypt",
-    "Insecure.Nmap",
     "JanDeDobbeleer.OhMyPosh",
     "JesseDuffield.lazydocker", 
     "JesseDuffield.lazygit", 
-    "MiKTeX.MiKTeX",
     "Microsoft.DotNet.SDK.8",
     "Microsoft.PowerShell",
     "Microsoft.PowerToys",
     "Microsoft.WindowsTerminal",
     "Mozilla.Firefox",
     "Notepad++.Notepad++",
-    "Notion.Notion",
     "Obsidian.Obsidian",
+    "Oven-sh.Bun",
     "OpenJS.NodeJS",
-    "Python.Python.3.12",
-    "VideoLAN.VLC",
-    "WiresharkFoundation.Wireshark",
+    "Python.Python.3.13",
     "gerardog.gsudo",
     "Microsoft.VisualStudioCode",
-    "Microsoft.OpenJDK.21",
     "Neovim.Neovim",
     "GoLang.Go"
-  );
+  )
 
+  $optional_winget = @(
+    "IDRIX.VeraCrypt",
+    "Duplicati.Duplicati",
+    "Insecure.Nmap",
+    "WiresharkFoundation.Wireshark",
+    "MiKTeX.MiKTeX",
+    "Microsoft.OpenJDK.21",
+    "VideoLAN.VLC",
+    "Notion.Notion"
+  )
 
-  Foreach ($prg in $programs_winget) {
-    winget install --exact --silent $prg
+  $all_programs = $programs_winget
+  if ($FullInstall) {
+    $all_programs += $optional_winget
   }
 
-  # make sure path is set correctly
-  $env:Path = [System.Environment]::GetEnvironmentVariable("Path",
-  "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path",
-  "User") 
+  foreach ($prg in $all_programs) {
+    try {
+      winget install --exact --silent $prg
+    }
+    catch {
+      Write-Host "Failed to install $prg"
+    }
+  }
 }
 
 function Configure {
-
-  if (!(Test-Path $env:localappdata\nvim)) {
-    git clone https://github.com/NvChad/NvChad $env:localappdata\nvim --depth 1 && nvim
-  }else {
+  try {
     $cwd = pwd
-    cd $HOME\AppData\Local\nvim
-    git pull --rebase
+    cd $PSScriptRoot
+    cp -r ../shared/.git* $HOME
+    cp -r ../shared/nvim $env:localappdata/nvim
+    Write-Host -NoNewLine 'To complete nvim setup, run nvim and execute :MasonInstallAll
+    Press any key to continue...';
+    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+    nvim
+    cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
     cd $cwd
   }
-
-
-  $cwd = pwd
-  cd $PSScriptRoot
-  cp -r -Force ../shared/nvchad/ $HOME\AppData\Local\nvim\lua\custom
-  cp -r ../shared/.git* $HOME
-  cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
-  cd $cwd
+  catch {
+    Write-Host "Configuration failed: $_"
+  }
 }
 
 if ($args[0] -eq "install" -or $args[0] -eq "") {
-  Install-Packages
+  Install-Packages -FullInstall:$false
+  Configure
+}
+elseif ($args[0] -eq "install-full") {
+  Install-Packages -FullInstall:$true
   Configure
 }
 elseif ($args[0] -like "config*") {

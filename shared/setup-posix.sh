@@ -1,7 +1,7 @@
 #!/bin/bash
 USER=lukas
 SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
-HOMEBREW_PACKAGES=("neovim" "go" "yq" "btop" "k9s" "lazygit" "gh" "node" "fzf")
+HOMEBREW_PACKAGES=("jandedobbeleer/oh-my-posh/oh-my-posh", "neovim" "go" "yq" "btop" "k9s" "lazygit" "gh" "node" "fzf")
 
 install_packages() {
   if [ -f /etc/os-release ]; then
@@ -25,15 +25,11 @@ install_packages() {
   if [[ "$LINUX" == "true" && $LINUX_VARIANT == "debian" ]]; then
     install_debian_packages
   fi
-  # TODO: automate macos + arch setup
-
-  # Add pwsh installation
-
+  chsh -s $(which zsh)
   # Drop root privileges
   su - $USER
 
   install_homebrew_packages
-
 }
 
 install_debian_packages() {
@@ -45,8 +41,6 @@ install_debian_packages() {
 install_homebrew_packages() {
   # Install homebrew
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  brew install jandedobbeleer/oh-my-posh/oh-my-posh
-
   # Install packages
   for pkg in "${HOMEBREW_PACKAGES[@]}"; do
     brew install "$pkg"
@@ -57,15 +51,12 @@ configure() {
   # Copy dotfiles to user's home directory
   cp "$SCRIPT_DIR"/.* "$HOME"
 
+  mkdir -p ~/.config
   # Set nvchad config
-  if [ ! -d ~/.config/nvim ]; then
-    git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1 && nvim
-  else
-    wd=$(pwd)
-    cd ~/.config/nvim && git pull && nvim
-    cd "$wd"
-  fi
-  cp -r "$SCRIPT_DIR"/nvchad/ ~/.config/nvim/lua/custom/
+  cp -r "$SCRIPT_DIR"/nvim/ ~/.config/nvim/
+  read -p "To complete nvim setup, run nvim and run :MasonInstallAll
+  Press any key to continue..."
+  nvim
 
   # Setup tmux
   mkdir -p ~/.config/tmux/
@@ -77,6 +68,10 @@ configure() {
     cd ~/.tmux/plugins/tpm && git pull
     cd "$wd"
   fi
+
+  read -p "To complete tmux setup, run tmux and press C-Space + I to install plugins
+  Press any key to continue..."
+  tmux
 }
 
 if [[ -z "$*" || "$*" == "install" ]]; then
