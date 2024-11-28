@@ -8,6 +8,6 @@ alias lg=lazygit
 alias nv=nvim
 alias g=git
 alias top=btop
-alias ls='ls -F --color=auto '
+alias ls='ls --color=auto '
 
 source <(fzf --zsh)
