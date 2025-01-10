@@ -53,7 +53,7 @@ configure() {
 
   mkdir -p ~/.config
   # Set nvchad config
-  cp -r "$SCRIPT_DIR"/nvim/ ~/.config/nvim/
+  cp -r "$SCRIPT_DIR"/nvim/* ~/.config/nvim/
   read -p "To complete nvim setup, run nvim and run :MasonInstallAll
   Press any key to continue..."
   nvim
