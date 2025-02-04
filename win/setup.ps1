@@ -59,8 +59,9 @@ function Install-Packages {
 function Copy-Dotfiles {
   $cwd = pwd
   cd $PSScriptRoot
-  cp -r ../shared/.git* $HOME
-  cp -r ../shared/nvim $env:localappdata/nvim
+  cp -Recurse ../shared/.git* $HOME
+  mkdir -Force $env:localappdata/nvim
+  cp -Recurse -Force ../shared/nvim/* $env:localappdata/nvim
   cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
   cd $cwd
 }
@@ -85,7 +86,7 @@ elseif ($args[0] -eq "install-full") {
   Install-Packages -FullInstall:$true
   Configure
 }
-elseif($args[0] -eq "update-dotfiles") {
+elseif ($args[0] -eq "update-dotfiles") {
   Copy-Dotfiles
 }
 elseif ($args[0] -like "config*") {
