@@ -12,6 +12,10 @@ $dev = "E:\Dokumente\Development"
 
 function zsh { wsl.exe zsh }
 
+function startWebUI {
+ docker run -d -p 8080:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart unless-stopped ghcr.io/open-webui/open-webui:main
+}
+
 # Fix winget paths
 $wingetPackagesPath = "$env:LOCALAPPDATA\Microsoft\WinGet\Packages"
 $packageDirs = Get-ChildItem -Directory -Path $wingetPackagesPath

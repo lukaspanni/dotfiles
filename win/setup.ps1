@@ -23,6 +23,7 @@ function Install-Packages {
     "Neovim.Neovim",
     "Notepad++.Notepad++",
     "Obsidian.Obsidian",
+    "Ollama.Ollama",
     "OpenJS.NodeJS",
     "Oven-sh.Bun",
     "Python.Python.3.13",
