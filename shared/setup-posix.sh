@@ -1,7 +1,7 @@
 #!/bin/bash
 USER=lukas
 SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
-HOMEBREW_PACKAGES=("jandedobbeleer/oh-my-posh/oh-my-posh", "neovim" "go" "yq" "btop" "k9s" "lazygit" "gh" "node" "fzf")
+HOMEBREW_PACKAGES=("btop" "fzf" "gh" "go" "jandedobbeleer/oh-my-posh/oh-my-posh" "k9s" "lazydocker" "lazygit" "neovim" "node" "oven-sh/bun/bun" "yazi" "yq")
 
 install_packages() {
   if [ -f /etc/os-release ]; then
@@ -47,9 +47,18 @@ install_homebrew_packages() {
   done
 }
 
-configure() {
+copy_dotfiles() {
   # Copy dotfiles to user's home directory
+  # TODO: Check if dotfiles are already present and ask for overwrite!
   cp "$SCRIPT_DIR"/.* "$HOME"
+}
+
+configure() {
+  copy_dotfiles
+
+  # Setup zsh with zinit, requires dotfiles to be already present!
+  bash -c "NO_INPUT=1 $(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)"
+  zsh -c "source ~/.zshrc && zinit self-update"
 
   mkdir -p ~/.config
   # Set nvchad config
@@ -77,6 +86,8 @@ configure() {
 if [[ -z "$*" || "$*" == "install" ]]; then
   install_packages
   configure
+elif [[ "$*" == "update-dotfiles" ]]; then # only copy (changed) dotfiles
+  copy_dotfiles
 elif [[ "$*" == config* ]]; then
   configure
 else
