@@ -31,10 +31,10 @@ function IsPathInEnvironment {
 foreach ($packageDir in $packageDirs) {
     # Only consider subfolders that contain binaries to be added to path
     $binaryFiles = Get-ChildItem -Path $packageDir.FullName -Recurse -Include *.exe
-
-    if ($binaryFiles) {
-        if (-not (IsPathInEnvironment -path $packageDir.FullName)) {
-            $env:Path += ";$($packageDir.FullName)"
+    foreach ($binaryFile in $binaryFiles) {
+        $binaryFolder = $binaryFile.DirectoryName
+        if (-not (IsPathInEnvironment -path $binaryFolder)) {
+            $env:Path += ";$binaryFolder"
         }
     }
 }
