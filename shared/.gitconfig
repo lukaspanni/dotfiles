@@ -39,7 +39,7 @@
   pruneTags = true
   all = true
 [help]
-  autocorrect = true
+  autocorrect = 20
 [rerere]
   enabled = true
   autoupdate = true
