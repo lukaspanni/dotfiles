@@ -1,4 +1,4 @@
-oh-my-posh --init --shell pwsh --config "$env:localappdata/Programs/oh-my-posh/themes/craver.omp.json" | Invoke-Expression
+oh-my-posh --init --shell pwsh --config "$env:localappdata/Programs/oh-my-posh/themes/quick-term.omp.json" | Invoke-Expression
 Set-Alias lg lazygit
 Set-Alias ld lazydocker
 Set-Alias g git

@@ -2,7 +2,7 @@ if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] &&
   exec tmux
 fi
 
-eval "$(oh-my-posh --init --shell zsh --config $(brew --prefix oh-my-posh)/themes/craver.omp.json)"
+eval "$(oh-my-posh --init --shell zsh --config $(brew --prefix oh-my-posh)/themes/quick-term.omp.json)"
 
 alias lg=lazygit
 alias ld=lazydocker
