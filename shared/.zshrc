@@ -33,6 +33,7 @@ if command -v zinit &> /dev/null; then
   zinit light zsh-users/zsh-autosuggestions
   zinit light Aloxaf/fzf-tab
   zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+  zinit load zdharma-continuum/history-search-multi-word
 else 
   echo "zinit not found or not configured correctly, skipping zsh plugins"
 fi
