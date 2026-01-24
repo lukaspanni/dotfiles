@@ -3,7 +3,9 @@
 	email = lukas.panni@outlook.de
 	signingkey = ~/.ssh/git_sign.pub
 [alias]
-	s = status
+  s = status
+  sw = switch
+  swc = switch -c
 	fpush = push --force-with-lease
 	psh = push
 	print = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
