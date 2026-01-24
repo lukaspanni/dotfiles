@@ -49,8 +49,30 @@ install_homebrew_packages() {
 
 copy_dotfiles() {
   # Copy dotfiles to user's home directory
-  # TODO: Check if dotfiles are already present and ask for overwrite!
-  cp "$SCRIPT_DIR"/.* "$HOME"
+  # Note: Specific dotfiles (nvim, tmux) are handled in configure()
+  
+  # Find and copy all dotfiles (files starting with .) from SCRIPT_DIR
+  shopt -s dotglob nullglob
+  for filepath in "$SCRIPT_DIR"/.*; do
+    # Only process files, not directories
+    if [ -f "$filepath" ]; then
+      dotfile=$(basename "$filepath")
+      if [ -f "$HOME/$dotfile" ]; then
+        read -p "$dotfile already exists in $HOME. Overwrite? (y/N) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+          cp "$filepath" "$HOME/$dotfile"
+          echo "Copied $dotfile to $HOME"
+        else
+          echo "Skipped $dotfile"
+        fi
+      else
+        cp "$filepath" "$HOME/$dotfile"
+        echo "Copied $dotfile to $HOME"
+      fi
+    fi
+  done
+  shopt -u dotglob nullglob
 }
 
 configure() {
