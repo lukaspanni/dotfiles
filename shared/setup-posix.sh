@@ -45,6 +45,13 @@ install_homebrew_packages() {
   for pkg in "${HOMEBREW_PACKAGES[@]}"; do
     brew install "$pkg"
   done
+
+  # Ensure pnpm is available
+  if ! command -v pnpm >/dev/null 2>&1; then
+    echo "Installing pnpm..."
+    export PNPM_HOME="$HOME/Library/pnpm"
+    curl -fsSL https://get.pnpm.io/install.sh | sh -
+  fi
 }
 
 copy_dotfiles() {

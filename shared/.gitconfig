@@ -8,6 +8,7 @@
   swc = switch -c
 	fpush = push --force-with-lease
 	psh = push
+  p = pull
 	print = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	fix = commit --amend --no-edit
 [init]
