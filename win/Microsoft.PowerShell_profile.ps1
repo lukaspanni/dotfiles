@@ -7,6 +7,11 @@ Set-Alias htop ntop
 Set-Alias which gcm
 Set-Alias y yazi
 
+$bunBin = Join-Path $HOME ".bun\bin"
+if ((Test-Path $bunBin) -and -not (($env:Path -split ';') -contains $bunBin)) {
+    $env:Path += ";$bunBin"
+}
+
 $VServer="37.120.173.24"
 $dev = "E:\Dokumente\Development"
 
@@ -38,4 +43,3 @@ foreach ($packageDir in $packageDirs) {
         }
     }
 }
-

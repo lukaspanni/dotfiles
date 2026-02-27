@@ -26,7 +26,6 @@ function Install-Packages {
     "Ollama.Ollama",
     "OpenJS.NodeJS",
     "Oven-sh.Bun",
-    "Python.Python.3.13",
     "gerardog.gsudo",
     "gsass1.NTop",
     "sxyazi.yazi"
@@ -57,25 +56,135 @@ function Install-Packages {
   }
 }
 
+function Get-BunPath {
+  $bun = Get-Command bun -ErrorAction SilentlyContinue
+  if ($bun) {
+    return $bun.Source
+  }
+
+  $wingetBunDir = Get-ChildItem -Directory -Path "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Filter "Oven-sh.Bun*" -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $wingetBunDir) {
+    return $null
+  }
+
+  $bunExe = Get-ChildItem -Path $wingetBunDir.FullName -Recurse -Filter "bun.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($bunExe) {
+    return $bunExe.FullName
+  }
+
+  return $null
+}
+
+function Install-OpenCode {
+  try {
+    $bunPath = Get-BunPath
+
+    if (-not $bunPath) {
+      throw "bun executable not found."
+    }
+
+    & $bunPath add -g opencode-ai
+  }
+  catch {
+    Write-Host "Failed to install opencode-ai: $_"
+  }
+}
+
+function Install-OpenCodeConfigDependencies {
+  try {
+    $bunPath = Get-BunPath
+    if (-not $bunPath) {
+      throw "bun executable not found."
+    }
+
+    $configDir = "$HOME/.config/opencode"
+    if (-not (Test-Path "$configDir/package.json")) {
+      return
+    }
+
+    & $bunPath install --cwd "$configDir"
+  }
+  catch {
+    Write-Host "Failed to install opencode config dependencies: $_"
+  }
+}
+
+function Sync-FileToRepo {
+  param (
+    [string]$Source,
+    [string]$Destination
+  )
+
+  if (-not (Test-Path $Source)) {
+    return
+  }
+
+  mkdir -Force (Split-Path $Destination) | Out-Null
+  cp -Force $Source $Destination
+}
+
+function Sync-DirectoryToRepo {
+  param (
+    [string]$Source,
+    [string]$Destination,
+    [string[]]$Exclude = @()
+  )
+
+  if (-not (Test-Path $Source)) {
+    return
+  }
+
+  mkdir -Force $Destination | Out-Null
+  Get-ChildItem -Force -LiteralPath $Source | ForEach-Object {
+    if ($Exclude -contains $_.Name) {
+      return
+    }
+
+    cp -Recurse -Force -LiteralPath $_.FullName -Destination $Destination
+  }
+}
+
 function Copy-Dotfiles {
   $cwd = pwd
   cd $PSScriptRoot
   cp -Recurse ../shared/.git* $HOME
   mkdir -Force $env:localappdata/nvim
   cp -Recurse -Force ../shared/nvim/* $env:localappdata/nvim
+  mkdir -Force "$HOME/.config"
+  mkdir -Force "$HOME/.config/opencode"
+  cp -Recurse -Force ../shared/opencode/* "$HOME/.config/opencode"
+  mkdir -Force (Split-Path $PROFILE)
   cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
   cd $cwd
 }
 function Configure {
   try {
+    Install-OpenCode
     Copy-Dotfiles
-    Write-Host -NoNewLine 'To complete nvim setup, run nvim and execute :MasonInstallAll
-    Press any key to continue...';
-    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-    nvim
+    Install-OpenCodeConfigDependencies
+    Write-Host "Run nvim and execute :MasonInstallAll to complete nvim setup."
   }
   catch {
     Write-Host "Configuration failed: $_"
+  }
+}
+
+function Sync-FromSystem {
+  $cwd = pwd
+  cd $PSScriptRoot
+
+  try {
+    Sync-FileToRepo "$HOME/.gitconfig" "../shared/.gitconfig"
+    Sync-FileToRepo "$HOME/.gitignore_global" "../shared/.gitignore_global"
+    Sync-FileToRepo "$HOME/.zshenv" "../shared/.zshenv"
+    Sync-FileToRepo "$HOME/.zshrc" "../shared/.zshrc"
+    Sync-DirectoryToRepo "$env:localappdata/nvim" "../shared/nvim"
+    Sync-FileToRepo "$HOME/.config/opencode/AGENTS.md" "../shared/opencode/AGENTS.md"
+    Sync-FileToRepo "$HOME/.config/opencode/opencode.jsonc" "../shared/opencode/opencode.jsonc"
+    Sync-FileToRepo $PROFILE "./Microsoft.PowerShell_profile.ps1"
+  }
+  finally {
+    cd $cwd
   }
 }
 
@@ -89,6 +198,9 @@ elseif ($args[0] -eq "install-full") {
 }
 elseif ($args[0] -eq "update-dotfiles") {
   Copy-Dotfiles
+}
+elseif ($args[0] -eq "sync-from-system") {
+  Sync-FromSystem
 }
 elseif ($args[0] -like "config*") {
   Configure

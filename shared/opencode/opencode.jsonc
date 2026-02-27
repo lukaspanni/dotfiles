@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": "notify",
+  "plugin": ["opencode-openai-codex-auth", "@mohak34/opencode-notifier@latest"],
+  "watcher": {
+    "ignore": ["node_modules/**", "dist/**", ".git/**"],
+  },
+  "provider": {
+    "openai": {
+      "options": {
+        "reasoningEffort": "high",
+        "reasoningSummary": "auto",
+        "textVerbosity": "low",
+        "include": ["reasoning.encrypted_content"],
+        "store": false,
+      },
+    },
+  },
+}
