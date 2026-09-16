@@ -8,6 +8,7 @@ HOMEBREW_PACKAGES=(
   "fzf"
   "gh"
   "go"
+  "herdr"
   "jandedobbeleer/oh-my-posh/oh-my-posh"
   "k9s"
   "lazydocker"
@@ -15,7 +16,6 @@ HOMEBREW_PACKAGES=(
   "neovim"
   "node"
   "oven-sh/bun/bun"
-  "tmux"
   "yazi"
   "yq"
 )
@@ -28,7 +28,6 @@ DEBIAN_PACKAGES=(
   "git"
   "neofetch"
   "htop"
-  "tmux"
 )
 
 ensure_non_root() {
@@ -162,8 +161,8 @@ sync_configs() {
   mkdir -p "$HOME/.config/nvim"
   cp -rf "$SCRIPT_DIR"/nvim/* "$HOME/.config/nvim/"
 
-  mkdir -p "$HOME/.config/tmux"
-  cp -rf "$SCRIPT_DIR"/tmux/* "$HOME/.config/tmux/"
+  mkdir -p "$HOME/.config/herdr"
+  cp -f "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
 
   mkdir -p "$HOME/.config/opencode"
   cp -rf "$SCRIPT_DIR"/opencode/* "$HOME/.config/opencode/"
@@ -175,10 +174,6 @@ sync_configs_from_home() {
     cp -rf "$HOME/.config/nvim"/* "$SCRIPT_DIR/nvim/"
   fi
 
-  if [ -d "$HOME/.config/tmux" ]; then
-    mkdir -p "$SCRIPT_DIR/tmux"
-    cp -rf "$HOME/.config/tmux"/* "$SCRIPT_DIR/tmux/"
-  fi
 
   if [ -d "$HOME/.config/opencode" ]; then
     mkdir -p "$SCRIPT_DIR/opencode"
@@ -196,13 +191,6 @@ configure_zsh() {
   zsh -c "source ~/.zshrc && zinit self-update"
 }
 
-configure_tmux() {
-  if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-    git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-  else
-    git -C "$HOME/.tmux/plugins/tpm" pull
-  fi
-}
 
 set_default_shell() {
   if command -v zsh >/dev/null 2>&1; then
@@ -241,10 +229,8 @@ configure() {
   sync_configs
   install_opencode_config_dependencies
   configure_zsh
-  configure_tmux
 
   echo "Run nvim and execute :MasonInstallAll to complete nvim setup."
-  echo "Run tmux and press C-Space + I to install tmux plugins."
 }
 
 sync_from_system() {

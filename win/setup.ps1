@@ -11,6 +11,7 @@ function Install-Packages {
     "GitHub.cli",
     "GoLang.Go",
     "Google.Chrome",
+    "Herdr.Herdr.Preview",
     "JanDeDobbeleer.OhMyPosh",
     "JesseDuffield.lazydocker",
     "JesseDuffield.lazygit",
@@ -153,6 +154,8 @@ function Copy-Dotfiles {
   mkdir -Force "$HOME/.config"
   mkdir -Force "$HOME/.config/opencode"
   cp -Recurse -Force ../shared/opencode/* "$HOME/.config/opencode"
+  mkdir -Force "$env:APPDATA/herdr"
+  cp -Force ../shared/herdr/config.toml "$env:APPDATA/herdr/config.toml"
   mkdir -Force (Split-Path $PROFILE)
   cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
   cd $cwd
@@ -179,6 +182,7 @@ function Sync-FromSystem {
     Sync-FileToRepo "$HOME/.zshenv" "../shared/.zshenv"
     Sync-FileToRepo "$HOME/.zshrc" "../shared/.zshrc"
     Sync-DirectoryToRepo "$env:localappdata/nvim" "../shared/nvim"
+    Sync-FileToRepo "$env:APPDATA/herdr/config.toml" "../shared/herdr/config.toml"
     Sync-FileToRepo "$HOME/.config/opencode/AGENTS.md" "../shared/opencode/AGENTS.md"
     Sync-FileToRepo "$HOME/.config/opencode/opencode.jsonc" "../shared/opencode/opencode.jsonc"
     Sync-FileToRepo $PROFILE "./Microsoft.PowerShell_profile.ps1"

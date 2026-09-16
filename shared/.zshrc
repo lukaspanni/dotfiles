@@ -1,5 +1,5 @@
-if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
-  exec tmux
+if command -v herdr &> /dev/null && [ -n "$PS1" ] && [ -z "$HERDR_PANE_ID" ]; then
+  exec herdr
 fi
 
 eval "$(oh-my-posh --init --shell zsh --config $(brew --prefix oh-my-posh)/themes/quick-term.omp.json)"
@@ -32,7 +32,6 @@ if command -v zinit &> /dev/null; then
   zinit light zsh-users/zsh-completions
   zinit light zsh-users/zsh-autosuggestions
   zinit light Aloxaf/fzf-tab
-  zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
   zinit load zdharma-continuum/history-search-multi-word
 else 
   echo "zinit not found or not configured correctly, skipping zsh plugins"
