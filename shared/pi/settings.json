@@ -1,0 +1,18 @@
+{
+  "packages": [
+    "npm:pi-exit",
+    "npm:pi-execution-time",
+    "npm:pi-subagents",
+    "https://github.com/DietrichGebert/ponytail",
+    "https://github.com/lukaspanni/pi-context-control"
+  ],
+  "lastChangelogVersion": "1.2.0",
+  "theme": "dark",
+  "defaultProvider": "openai",
+  "defaultModel": "gpt-5.4",
+  "defaultThinkingLevel": "medium",
+  "enabledModels": [
+    "openai/gpt-6-luna",
+    "openai/gpt-6-sol"
+  ]
+}

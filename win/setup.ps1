@@ -91,6 +91,15 @@ function Install-OpenCode {
   }
 }
 
+function Install-Pi {
+  try {
+    Invoke-RestMethod https://pi.dev/install.ps1 | Invoke-Expression
+  }
+  catch {
+    Write-Host "Failed to install Pi: $_"
+  }
+}
+
 function Install-OpenCodeConfigDependencies {
   try {
     $bunPath = Get-BunPath
@@ -154,6 +163,8 @@ function Copy-Dotfiles {
   mkdir -Force "$HOME/.config"
   mkdir -Force "$HOME/.config/opencode"
   cp -Recurse -Force ../shared/opencode/* "$HOME/.config/opencode"
+  mkdir -Force "$HOME/.pi/agent"
+  cp -Force ../shared/pi/settings.json "$HOME/.pi/agent/settings.json"
   mkdir -Force "$env:APPDATA/herdr"
   cp -Force ../shared/herdr/config.toml "$env:APPDATA/herdr/config.toml"
   mkdir -Force (Split-Path $PROFILE)
@@ -163,6 +174,7 @@ function Copy-Dotfiles {
 function Configure {
   try {
     Install-OpenCode
+    Install-Pi
     Copy-Dotfiles
     Install-OpenCodeConfigDependencies
     Write-Host "Run nvim and execute :MasonInstallAll to complete nvim setup."
@@ -185,6 +197,7 @@ function Sync-FromSystem {
     Sync-FileToRepo "$env:APPDATA/herdr/config.toml" "../shared/herdr/config.toml"
     Sync-FileToRepo "$HOME/.config/opencode/AGENTS.md" "../shared/opencode/AGENTS.md"
     Sync-FileToRepo "$HOME/.config/opencode/opencode.jsonc" "../shared/opencode/opencode.jsonc"
+    Sync-FileToRepo "$HOME/.pi/agent/settings.json" "../shared/pi/settings.json"
     Sync-FileToRepo $PROFILE "./Microsoft.PowerShell_profile.ps1"
   }
   finally {

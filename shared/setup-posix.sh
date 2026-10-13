@@ -119,6 +119,10 @@ install_opencode() {
   bun add -g opencode-ai
 }
 
+install_pi() {
+  curl -fsSL https://pi.dev/install.sh | sh
+}
+
 install_opencode_config_dependencies() {
   if [ ! -f "$HOME/.config/opencode/package.json" ]; then
     return
@@ -166,6 +170,9 @@ sync_configs() {
 
   mkdir -p "$HOME/.config/opencode"
   cp -rf "$SCRIPT_DIR"/opencode/* "$HOME/.config/opencode/"
+
+  mkdir -p "$HOME/.pi/agent"
+  cp -f "$SCRIPT_DIR/pi/settings.json" "$HOME/.pi/agent/settings.json"
 }
 
 sync_configs_from_home() {
@@ -183,6 +190,10 @@ sync_configs_from_home() {
     if [ -f "$HOME/.config/opencode/opencode.jsonc" ]; then
       cp -f "$HOME/.config/opencode/opencode.jsonc" "$SCRIPT_DIR/opencode/opencode.jsonc"
     fi
+  fi
+
+  if [ -f "$HOME/.pi/agent/settings.json" ]; then
+    cp -f "$HOME/.pi/agent/settings.json" "$SCRIPT_DIR/pi/settings.json"
   fi
 }
 
@@ -221,6 +232,7 @@ install_packages() {
   install_homebrew_packages
   install_pnpm
   install_opencode
+  install_pi
   set_default_shell
 }
 
