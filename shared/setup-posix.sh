@@ -134,12 +134,85 @@ install_opencode_config_dependencies() {
   )
 }
 
+copy_config_file() {
+  local source=$1 target=$2 base_key=${3:-${1#"$SCRIPT_DIR"/}} base answer temp
+  base="$HOME/.dotfiles-config-base/$base_key"
+  echo "Updating config: $target"
+  mkdir -p "$(dirname "$target")"
+
+  if [ -d "$target" ]; then
+    echo "Skipping config because target is a directory: $target"
+    return
+  fi
+
+  if [ ! -e "$target" ]; then
+    cp -f "$source" "$target"
+    mkdir -p "$(dirname "$base")"
+    cp -f "$source" "$base"
+    return
+  fi
+
+  if cmp -s "$source" "$target"; then
+    echo "Already up to date: $target"
+    mkdir -p "$(dirname "$base")"
+    cp -f "$source" "$base"
+    return
+  fi
+
+  if [ ! -t 0 ]; then
+    echo "Skipping existing config (no interactive input): $target"
+    return
+  fi
+
+  while true; do
+    read -r -p "'$target' exists: [o]verwrite, [m]erge, [s]kip? " answer
+    case "$answer" in
+      o|O)
+        cp -f "$source" "$target"
+        mkdir -p "$(dirname "$base")"
+        cp -f "$source" "$base"
+        echo "Overwrote config: $target"
+        return
+        ;;
+      m|M)
+        if [ ! -f "$base" ] || ! command -v git >/dev/null 2>&1; then
+          echo "Cannot safely merge '$target' without its previous config version and git; leaving it unchanged."
+          return
+        fi
+        temp=$(mktemp)
+        cp -f "$target" "$temp"
+        if git merge-file "$temp" "$base" "$source"; then
+          cp -f "$temp" "$target"
+          cp -f "$source" "$base"
+          echo "Merged config: $target"
+        else
+          echo "Merge conflicted or failed; leaving config unchanged: $target"
+        fi
+        rm -f "$temp"
+        return
+        ;;
+      s|S)
+        echo "Skipped config: $target"
+        return
+        ;;
+    esac
+  done
+}
+
+copy_config_directory() {
+  local source_dir=$1 target_dir=$2 filepath relative
+  while IFS= read -r -d '' filepath; do
+    relative=${filepath#"$source_dir"/}
+    copy_config_file "$filepath" "$target_dir/$relative"
+  done < <(find "$source_dir" -type d -name .git -prune -o -type f ! -name .git -print0)
+}
+
 copy_dotfiles() {
   shopt -s dotglob nullglob
 
   for filepath in "$SCRIPT_DIR"/.*; do
     if [ -f "$filepath" ]; then
-      cp -f "$filepath" "$HOME/$(basename "$filepath")"
+      copy_config_file "$filepath" "$HOME/$(basename "$filepath")"
     fi
   done
 
@@ -153,7 +226,7 @@ sync_dotfiles_from_home() {
     if [ -f "$filepath" ]; then
       dotfile=$(basename "$filepath")
       if [ -f "$HOME/$dotfile" ]; then
-        cp -f "$HOME/$dotfile" "$filepath"
+        copy_config_file "$HOME/$dotfile" "$filepath" "$dotfile"
       fi
     fi
   done
@@ -162,38 +235,36 @@ sync_dotfiles_from_home() {
 }
 
 sync_configs() {
-  mkdir -p "$HOME/.config/nvim"
-  cp -rf "$SCRIPT_DIR"/nvim/* "$HOME/.config/nvim/"
+  copy_config_directory "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
+  copy_config_file "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+  copy_config_directory "$SCRIPT_DIR/opencode" "$HOME/.config/opencode"
+  copy_config_file "$SCRIPT_DIR/pi/settings.json" "$HOME/.pi/agent/settings.json"
+}
 
-  mkdir -p "$HOME/.config/herdr"
-  cp -f "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
-
-  mkdir -p "$HOME/.config/opencode"
-  cp -rf "$SCRIPT_DIR"/opencode/* "$HOME/.config/opencode/"
-
-  mkdir -p "$HOME/.pi/agent"
-  cp -f "$SCRIPT_DIR/pi/settings.json" "$HOME/.pi/agent/settings.json"
+sync_config_directory_from_home() {
+  local source_dir=$1 target_dir=$2 filepath relative base_key
+  while IFS= read -r -d '' filepath; do
+    relative=${filepath#"$source_dir"/}
+    base_key=${target_dir#"$SCRIPT_DIR"/}/$relative
+    copy_config_file "$filepath" "$target_dir/$relative" "$base_key"
+  done < <(find "$source_dir" -type d -name .git -prune -o -type f ! -name .git -print0)
 }
 
 sync_configs_from_home() {
   if [ -d "$HOME/.config/nvim" ]; then
-    mkdir -p "$SCRIPT_DIR/nvim"
-    cp -rf "$HOME/.config/nvim"/* "$SCRIPT_DIR/nvim/"
+    sync_config_directory_from_home "$HOME/.config/nvim" "$SCRIPT_DIR/nvim"
   fi
 
+  if [ -f "$HOME/.config/herdr/config.toml" ]; then
+    copy_config_file "$HOME/.config/herdr/config.toml" "$SCRIPT_DIR/herdr/config.toml" "herdr/config.toml"
+  fi
 
   if [ -d "$HOME/.config/opencode" ]; then
-    mkdir -p "$SCRIPT_DIR/opencode"
-    if [ -f "$HOME/.config/opencode/AGENTS.md" ]; then
-      cp -f "$HOME/.config/opencode/AGENTS.md" "$SCRIPT_DIR/opencode/AGENTS.md"
-    fi
-    if [ -f "$HOME/.config/opencode/opencode.jsonc" ]; then
-      cp -f "$HOME/.config/opencode/opencode.jsonc" "$SCRIPT_DIR/opencode/opencode.jsonc"
-    fi
+    sync_config_directory_from_home "$HOME/.config/opencode" "$SCRIPT_DIR/opencode"
   fi
 
   if [ -f "$HOME/.pi/agent/settings.json" ]; then
-    cp -f "$HOME/.pi/agent/settings.json" "$SCRIPT_DIR/pi/settings.json"
+    copy_config_file "$HOME/.pi/agent/settings.json" "$SCRIPT_DIR/pi/settings.json" "pi/settings.json"
   fi
 }
 

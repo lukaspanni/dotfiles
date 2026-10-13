@@ -129,8 +129,10 @@ function Sync-FileToRepo {
     return
   }
 
-  mkdir -Force (Split-Path $Destination) | Out-Null
-  cp -Force $Source $Destination
+  $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path.TrimEnd('\')
+  $destinationPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot $Destination))
+  $baseKey = $destinationPath.Substring($repoRoot.Length).TrimStart('\')
+  Copy-ConfigFile $Source $destinationPath $baseKey
 }
 
 function Sync-DirectoryToRepo {
@@ -144,32 +146,120 @@ function Sync-DirectoryToRepo {
     return
   }
 
-  mkdir -Force $Destination | Out-Null
-  Get-ChildItem -Force -LiteralPath $Source | ForEach-Object {
-    if ($Exclude -contains $_.Name) {
+  $sourcePath = (Resolve-Path -LiteralPath $Source).Path.TrimEnd('\')
+  Get-ChildItem -Force -LiteralPath $sourcePath -File -Recurse | Where-Object {
+    $relative = $_.FullName.Substring($sourcePath.Length).TrimStart('\')
+    $_.Name -ne ".git" -and $_.FullName -notmatch '[\\/]\.git[\\/]' -and $Exclude -notcontains ($relative -split '[\\/]')[0]
+  } | ForEach-Object {
+    $relative = $_.FullName.Substring($sourcePath.Length).TrimStart('\')
+    Sync-FileToRepo $_.FullName (Join-Path $Destination $relative)
+  }
+}
+
+function Copy-ConfigFile {
+  param (
+    [string]$Source,
+    [string]$Destination,
+    [string]$BaseKey
+  )
+
+  $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path.TrimEnd('\')
+  $sourcePath = (Resolve-Path -LiteralPath $Source).Path
+  if (-not $BaseKey) {
+    $BaseKey = $sourcePath.Substring($repoRoot.Length).TrimStart('\')
+  }
+  $base = Join-Path "$HOME/.dotfiles-config-base" $BaseKey
+  Write-Host "Updating config: $Destination"
+  mkdir -Force (Split-Path $Destination) | Out-Null
+
+  if (Test-Path $Destination -PathType Container) {
+    Write-Host "Skipping config because target is a directory: $Destination"
+    return
+  }
+
+  if (-not (Test-Path $Destination)) {
+    Copy-Item -LiteralPath $sourcePath -Destination $Destination -Force
+    mkdir -Force (Split-Path $base) | Out-Null
+    Copy-Item -LiteralPath $sourcePath -Destination $base -Force
+    return
+  }
+
+  if ((Get-FileHash -LiteralPath $sourcePath).Hash -eq (Get-FileHash -LiteralPath $Destination).Hash) {
+    Write-Host "Already up to date: $Destination"
+    mkdir -Force (Split-Path $base) | Out-Null
+    Copy-Item -LiteralPath $sourcePath -Destination $base -Force
+    return
+  }
+
+  if ([Console]::IsInputRedirected) {
+    Write-Host "Skipping existing config (no interactive input): $Destination"
+    return
+  }
+
+  while ($true) {
+    $choice = Read-Host "'$Destination' exists: [o]verwrite, [m]erge, [s]kip"
+    if ($choice -in @("o", "O")) {
+      Copy-Item -LiteralPath $sourcePath -Destination $Destination -Force
+      mkdir -Force (Split-Path $base) | Out-Null
+      Copy-Item -LiteralPath $sourcePath -Destination $base -Force
+      Write-Host "Overwrote config: $Destination"
       return
     }
+    if ($choice -in @("m", "M")) {
+      if (-not (Test-Path $base) -or -not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Host "Cannot safely merge '$Destination' without its previous config version and git; leaving it unchanged."
+        return
+      }
+      $temp = Join-Path $env:TEMP "dotfiles-merge-$([guid]::NewGuid()).tmp"
+      try {
+        Copy-Item -LiteralPath $Destination -Destination $temp
+        & git merge-file $temp $base $sourcePath
+        if ($LASTEXITCODE -eq 0) {
+          Copy-Item -LiteralPath $temp -Destination $Destination -Force
+          Copy-Item -LiteralPath $sourcePath -Destination $base -Force
+          Write-Host "Merged config: $Destination"
+        }
+        else {
+          Write-Host "Merge conflicted or failed; leaving config unchanged: $Destination"
+        }
+      }
+      finally {
+        Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue
+      }
+      return
+    }
+    if ($choice -in @("s", "S")) {
+      Write-Host "Skipped config: $Destination"
+      return
+    }
+  }
+}
 
-    cp -Recurse -Force -LiteralPath $_.FullName -Destination $Destination
+function Copy-ConfigDirectory {
+  param (
+    [string]$Source,
+    [string]$Destination
+  )
+
+  $sourcePath = (Resolve-Path -LiteralPath $Source).Path.TrimEnd('\')
+  Get-ChildItem -LiteralPath $sourcePath -File -Recurse -Force | Where-Object {
+    $_.Name -ne ".git" -and $_.FullName -notmatch '[\\/]\.git[\\/]'
+  } | ForEach-Object {
+    $relative = $_.FullName.Substring($sourcePath.Length).TrimStart('\')
+    Copy-ConfigFile $_.FullName (Join-Path $Destination $relative)
   }
 }
 
 function Copy-Dotfiles {
-  $cwd = pwd
-  cd $PSScriptRoot
-  cp -Recurse ../shared/.git* $HOME
-  mkdir -Force $env:localappdata/nvim
-  cp -Recurse -Force ../shared/nvim/* $env:localappdata/nvim
-  mkdir -Force "$HOME/.config"
-  mkdir -Force "$HOME/.config/opencode"
-  cp -Recurse -Force ../shared/opencode/* "$HOME/.config/opencode"
-  mkdir -Force "$HOME/.pi/agent"
-  cp -Force ../shared/pi/settings.json "$HOME/.pi/agent/settings.json"
-  mkdir -Force "$env:APPDATA/herdr"
-  cp -Force ../shared/herdr/config.toml "$env:APPDATA/herdr/config.toml"
-  mkdir -Force (Split-Path $PROFILE)
-  cp ./Microsoft.PowerShell_profile.ps1 $PROFILE
-  cd $cwd
+  $shared = Join-Path $PSScriptRoot "../shared"
+  Get-ChildItem -LiteralPath $shared -File -Force | Where-Object Name -Like ".*" | ForEach-Object {
+    Copy-ConfigFile $_.FullName (Join-Path $HOME $_.Name)
+  }
+  Copy-ConfigDirectory (Join-Path $shared "nvim") "$env:LOCALAPPDATA/nvim"
+  Copy-ConfigDirectory (Join-Path $shared "opencode") "$HOME/.config/opencode"
+  Copy-ConfigFile (Join-Path $shared "pi/settings.json") "$HOME/.pi/agent/settings.json"
+  Copy-ConfigFile (Join-Path $shared "herdr/config.toml") "$env:APPDATA/herdr/config.toml"
+  Copy-ConfigFile (Join-Path $PSScriptRoot "Microsoft.PowerShell_profile.ps1") $PROFILE
 }
 function Configure {
   try {
