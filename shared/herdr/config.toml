@@ -9,7 +9,7 @@ name = "tokyo-night"
 
 auto_switch = false
 [terminal]
-default_shell = "pwsh.exe"
+default_shell = "${DEFAULT_SHELL}"
 
 [update]
 channel = "stable"

@@ -234,9 +234,37 @@ sync_dotfiles_from_home() {
   shopt -u dotglob nullglob
 }
 
+copy_herdr_config() {
+  local source=$1 target=$2 base_key=${3:-herdr/config.toml} base rendered status
+  base="$HOME/.dotfiles-config-base/$base_key"
+  rendered=$(mktemp)
+  sed 's/default_shell = "${DEFAULT_SHELL}"/default_shell = "zsh"/' "$source" > "$rendered"
+  if [ -f "$base" ]; then
+    sed 's/default_shell = "${DEFAULT_SHELL}"/default_shell = "zsh"/' "$base" > "$base.tmp"
+    mv -f "$base.tmp" "$base"
+  fi
+  if copy_config_file "$rendered" "$target" "$base_key"; then status=0; else status=$?; fi
+  rm -f "$rendered"
+  return "$status"
+}
+
+sync_herdr_config_from_home() {
+  local source=$1 target=$2 base_key=${3:-herdr/config.toml} base normalized status
+  base="$HOME/.dotfiles-config-base/$base_key"
+  normalized=$(mktemp)
+  sed 's/default_shell = "zsh"/default_shell = "${DEFAULT_SHELL}"/' "$source" > "$normalized"
+  if [ -f "$base" ]; then
+    sed 's/default_shell = "zsh"/default_shell = "${DEFAULT_SHELL}"/' "$base" > "$base.tmp"
+    mv -f "$base.tmp" "$base"
+  fi
+  if copy_config_file "$normalized" "$target" "$base_key"; then status=0; else status=$?; fi
+  rm -f "$normalized"
+  return "$status"
+}
+
 sync_configs() {
   copy_config_directory "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
-  copy_config_file "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+  copy_herdr_config "$SCRIPT_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
   copy_config_directory "$SCRIPT_DIR/opencode" "$HOME/.config/opencode"
   copy_config_file "$SCRIPT_DIR/pi/settings.json" "$HOME/.pi/agent/settings.json"
 }
@@ -256,7 +284,7 @@ sync_configs_from_home() {
   fi
 
   if [ -f "$HOME/.config/herdr/config.toml" ]; then
-    copy_config_file "$HOME/.config/herdr/config.toml" "$SCRIPT_DIR/herdr/config.toml" "herdr/config.toml"
+    sync_herdr_config_from_home "$HOME/.config/herdr/config.toml" "$SCRIPT_DIR/herdr/config.toml"
   fi
 
   if [ -d "$HOME/.config/opencode" ]; then

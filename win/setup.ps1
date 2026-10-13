@@ -235,6 +235,60 @@ function Copy-ConfigFile {
   }
 }
 
+function Set-HerdrShellValue {
+  param (
+    [string]$Path,
+    [string]$From,
+    [string]$To
+  )
+
+  $content = [IO.File]::ReadAllText($Path)
+  $content = $content.Replace(('default_shell = "' + $From + '"'), ('default_shell = "' + $To + '"'))
+  [IO.File]::WriteAllText($Path, $content, [Text.UTF8Encoding]::new($false))
+}
+
+function Copy-HerdrConfig {
+  param (
+    [string]$Source,
+    [string]$Destination
+  )
+
+  $base = Join-Path "$HOME/.dotfiles-config-base" "herdr/config.toml"
+  $rendered = [IO.Path]::GetTempFileName()
+  try {
+    Copy-Item -LiteralPath $Source -Destination $rendered -Force
+    Set-HerdrShellValue $rendered '${DEFAULT_SHELL}' 'pwsh.exe'
+    if (Test-Path $base) {
+      Set-HerdrShellValue $base '${DEFAULT_SHELL}' 'pwsh.exe'
+    }
+    Copy-ConfigFile $rendered $Destination "herdr/config.toml"
+  }
+  finally {
+    Remove-Item -LiteralPath $rendered -Force -ErrorAction SilentlyContinue
+  }
+}
+
+function Sync-HerdrConfigToRepo {
+  param (
+    [string]$Source,
+    [string]$Destination
+  )
+
+  $base = Join-Path "$HOME/.dotfiles-config-base" "herdr/config.toml"
+  $normalized = [IO.Path]::GetTempFileName()
+  try {
+    Copy-Item -LiteralPath $Source -Destination $normalized -Force
+    Set-HerdrShellValue $normalized 'pwsh.exe' '${DEFAULT_SHELL}'
+    if (Test-Path $base) {
+      Set-HerdrShellValue $base 'pwsh.exe' '${DEFAULT_SHELL}'
+    }
+    Copy-ConfigFile $normalized $Destination "herdr/config.toml"
+  }
+  finally {
+    Remove-Item -LiteralPath $normalized -Force -ErrorAction SilentlyContinue
+  }
+}
+
 function Copy-ConfigDirectory {
   param (
     [string]$Source,
@@ -258,7 +312,7 @@ function Copy-Dotfiles {
   Copy-ConfigDirectory (Join-Path $shared "nvim") "$env:LOCALAPPDATA/nvim"
   Copy-ConfigDirectory (Join-Path $shared "opencode") "$HOME/.config/opencode"
   Copy-ConfigFile (Join-Path $shared "pi/settings.json") "$HOME/.pi/agent/settings.json"
-  Copy-ConfigFile (Join-Path $shared "herdr/config.toml") "$env:APPDATA/herdr/config.toml"
+  Copy-HerdrConfig (Join-Path $shared "herdr/config.toml") "$env:APPDATA/herdr/config.toml"
   Copy-ConfigFile (Join-Path $PSScriptRoot "Microsoft.PowerShell_profile.ps1") $PROFILE
 }
 function Configure {
@@ -284,7 +338,7 @@ function Sync-FromSystem {
     Sync-FileToRepo "$HOME/.zshenv" "../shared/.zshenv"
     Sync-FileToRepo "$HOME/.zshrc" "../shared/.zshrc"
     Sync-DirectoryToRepo "$env:localappdata/nvim" "../shared/nvim"
-    Sync-FileToRepo "$env:APPDATA/herdr/config.toml" "../shared/herdr/config.toml"
+    Sync-HerdrConfigToRepo "$env:APPDATA/herdr/config.toml" (Join-Path $PSScriptRoot "../shared/herdr/config.toml")
     Sync-FileToRepo "$HOME/.config/opencode/AGENTS.md" "../shared/opencode/AGENTS.md"
     Sync-FileToRepo "$HOME/.config/opencode/opencode.jsonc" "../shared/opencode/opencode.jsonc"
     Sync-FileToRepo "$HOME/.pi/agent/settings.json" "../shared/pi/settings.json"
