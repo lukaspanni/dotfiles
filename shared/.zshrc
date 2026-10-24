@@ -11,6 +11,15 @@ alias g=git
 alias top=btop
 alias ls='ls --color=auto '
 alias y=yazi
+alias oc=opencode
+
+function gitfix() {
+  git add -A && git commit -m "fix" && git push
+}
+
+function gitfixup() {
+  git add -A && git fix && git fpush
+}
 
 # History settings
 HISTFILE=~/.zsh_history
