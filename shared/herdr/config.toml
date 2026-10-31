@@ -19,10 +19,10 @@ manifest_check = true
 [keys]
 prefix = "ctrl+space"
 
-focus_pane_left = "prefix+h"
-focus_pane_down = "prefix+j"
-focus_pane_up = "prefix+k"
-focus_pane_right = "prefix+l"
+focus_pane_left = "ctrl+h"
+focus_pane_down = "ctrl+j"
+focus_pane_up = "ctrl+k"
+focus_pane_right = "ctrl+l"
 
 split_vertical = "prefix+%"
 split_horizontal = 'prefix+"'
