@@ -46,6 +46,7 @@ else
   echo "zinit not found or not configured correctly, skipping zsh plugins"
 fi
 
+autoload -Uz compinit && compinit
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
