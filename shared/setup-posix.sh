@@ -28,6 +28,7 @@ DEBIAN_PACKAGES=(
   "git"
   "neofetch"
   "htop"
+  "unattended-upgrades"
 )
 
 ensure_non_root() {
@@ -47,6 +48,16 @@ is_debian_family() {
   [[ "${ID:-}" == "debian" || "${ID:-}" == "ubuntu" || "${ID_LIKE:-}" == *debian* ]]
 }
 
+configure_unattended_upgrades() {
+  local apt_config="/etc/apt/apt.conf.d/99-dotfiles-unattended-upgrades"
+
+  sudo tee "$apt_config" >/dev/null <<'EOF'
+# Managed by lukaspanni/dotfiles.
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+}
+
 install_debian_packages() {
   if ! command -v apt-get >/dev/null 2>&1; then
     echo "apt-get not found. Unsupported Linux distribution."
@@ -55,6 +66,7 @@ install_debian_packages() {
 
   sudo apt-get update
   sudo apt-get install -y "${DEBIAN_PACKAGES[@]}"
+  configure_unattended_upgrades
 }
 
 install_homebrew() {
