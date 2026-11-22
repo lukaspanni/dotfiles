@@ -26,7 +26,6 @@ DEBIAN_PACKAGES=(
   "curl"
   "wget"
   "git"
-  "neofetch"
   "htop"
   "unattended-upgrades"
 )
